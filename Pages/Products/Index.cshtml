@@ -1,0 +1,46 @@
+@page
+@using Microsoft.AspNetCore.SignalR;
+@using InventorySystem.Models; 
+@model InventorySystem.Pages.Products.IndexModel
+@{
+    ViewData["Title"] = "Product List";
+}
+
+<h2 class="mb-4 text-center">Product Inventory</h2>
+
+<div class="mb-3 text-end">
+    <a asp-page="Create" class="btn btn-success">➕ Add New Product</a>
+</div>
+
+<table class="table table-bordered table-hover table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Restock Threshold</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var product in Model.Products)
+    {
+        var isLowStock = product.Quantity <= product.RestockThreshold;
+        var rowClass = isLowStock ? "table-warning" : "";
+
+        <tr class="@rowClass">
+            <td>@product.ProductName</td>
+            <td>@product.Quantity</td>
+            <td>@product.Price.ToString("C")</td>
+            <td>@product.RestockThreshold</td>
+            <td>
+                <a asp-page="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-primary">Edit</a>
+                <a asp-page="Delete" asp-route-id="@product.Id" class="btn btn-sm btn-danger ms-1">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<!-- Optional: Include Bootstrap if not already included in layout -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />

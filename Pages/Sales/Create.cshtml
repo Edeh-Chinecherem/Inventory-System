@@ -1,0 +1,63 @@
+@page
+@using Microsoft.AspNetCore.SignalR;
+@using InventorySystem.Models;
+@model InventorySystem.Pages.Sales.CreateModel
+@{
+    ViewData["Title"] = "Create Sale";
+}
+
+<h2 class="text-center text-primary my-4">Create Sale</h2>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form method="post" class="border p-4 shadow-sm rounded bg-light">
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary">Products (select and specify quantity):</label>
+                    <div id="itemsContainer"></div>
+                    <button type="button" onclick="addItem()" class="btn btn-outline-primary mt-2">Add Product</button>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success">Submit Sale</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let counter = 0;
+    function addItem() {
+        const container = document.getElementById('itemsContainer');
+        const index = counter++;
+        const itemHtml = `
+            <div class="border rounded p-3 mb-3 bg-white shadow-sm sale-item">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label">Product ID:</label>
+                        <input name="Items[${index}].ProductId" type="number" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Product Name:</label>
+                        <input name="Items[${index}].ProductName" type="text" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Quantity:</label>
+                        <input name="Items[${index}].Quantity" type="number" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Price:</label>
+                        <input name="Items[${index}].Price" type="number" step="0.01" class="form-control" required />
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', itemHtml);
+    }
+</script>
+
+<!-- Optional Bootstrap CDN (if not already included in your layout) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />

@@ -1,0 +1,160 @@
+@page
+@using Microsoft.AspNetCore.SignalR; 
+@using InventorySystem.Models; 
+@model InventorySystem.Pages.Dashboard.DashboardModel
+@{
+    ViewData["Title"] = "Sales Dashboard";
+}
+
+<h2 class="text-center mb-4">Sales Dashboard</h2>
+
+<!-- Filter Dropdown -->
+<div class="mb-4">
+    <label for="filterRange" class="form-label">Filter by:</label>
+    <select id="filterRange" class="form-select" onchange="filterDashboard()">
+        <option value="daily" selected="@((Model.Range == "daily") ? "selected" : "")">Daily</option>
+        <option value="weekly" selected="@((Model.Range == "weekly") ? "selected" : "")">Weekly</option>
+        <option value="monthly" selected="@((Model.Range == "monthly") ? "selected" : "")">Monthly</option>
+    </select>
+</div>
+
+<!-- Summary Cards -->
+<div id="summaryCards" class="row row-cols-1 row-cols-md-3 mb-4 g-4">
+    <div class="col">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Revenue</h5>
+                <p class="card-text" id="totalRevenue">@Model.TotalRevenue.ToString("C")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Number of Sales</h5>
+                <p class="card-text" id="totalSales">@Model.TotalSalesCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h5 class="card-title">Low Stock Items</h5>
+                <p class="card-text" id="lowStock">@Model.LowStockCount</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales and Top Products Chart -->
+<div class="mb-4">
+    <h4>Sales Revenue over Time</h4>
+    <canvas id="revenueChart"></canvas>
+</div>
+
+<div class="mb-4">
+    <h4>Top 5 Products by Quantity Sold</h4>
+    <canvas id="topProductsChart"></canvas>
+</div>
+
+<!-- Button to Download Chart -->
+<div class="text-center">
+    <button class="btn btn-primary" onclick="exportChart()">Download Chart</button>
+</div>
+
+<!-- Include Bootstrap CSS and Chart.js -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Initialize Chart.js
+    let revenueChart, topProductsChart;
+
+    // Function to update dashboard based on filter
+    function filterDashboard() {
+        const range = document.getElementById('filterRange').value;
+        window.location.href = `?Range=${range}`;  // Reload the page with the selected filter
+    }
+
+    // Function to export chart as image
+    function exportChart() {
+        const canvas = document.getElementById("revenueChart");
+        const url = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = "revenueChart.png";
+        link.href = url;
+        link.click();
+    }
+
+    // Data for Revenue Chart
+    const revenueData = {
+        labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.SalesChart.labels)),
+        datasets: [{
+            label: 'Total Sales (Revenue)',
+            data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.SalesChart.data)),
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            fill: false
+        }]
+    };
+
+    // Data for Top Products Chart
+    const topProductsData = {
+        labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopProductsChart.labels)),
+        datasets: [{
+            label: 'Quantity Sold',
+            data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopProductsChart.data)),
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    // Create the Revenue Chart
+    const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+    revenueChart = new Chart(ctxRevenue, {
+        type: 'line',
+        data: revenueData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'Sales Revenue'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Create the Top Products Chart
+    const ctxTopProducts = document.getElementById('topProductsChart').getContext('2d');
+    topProductsChart = new Chart(ctxTopProducts, {
+        type: 'bar',
+        data: topProductsData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Top 5 Products'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>

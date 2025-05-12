@@ -1,0 +1,17 @@
+@page "{id:int}"
+@using Microsoft.AspNetCore.SignalR; // For SignalR functionality in the view if needed
+@using InventorySystem.Models; 
+@model InventorySystem.Pages.Products.DeleteModel
+@{
+    ViewData["Title"] = "Delete Product";
+}
+
+<h2>Delete Product</h2>
+
+<p>Are you sure you want to delete <strong>@Model.Product.ProductName</strong>?</p>
+
+<form method="post">
+    <input type="hidden" asp-for="Product.Id" />
+    <button type="submit">Yes, Delete</button> |
+    <a asp-page="Index">Cancel</a>
+</form>

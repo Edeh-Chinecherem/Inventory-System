@@ -1,0 +1,164 @@
+@page
+@using Microsoft.AspNetCore.SignalR;
+@using InventorySystem.Models; 
+@model InventorySystem.Pages.Sales.ReceiptModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Receipt</title>
+    <style>
+        body {
+            font-family: "Courier New", Courier, monospace;
+            background: #f7f7f7;
+            padding: 20px;
+        }
+
+        .receipt-container {
+            max-width: 400px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border: 2px dashed #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #aaa;
+            padding-bottom: 5px;
+        }
+
+        .receipt-meta {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .receipt-meta p {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 5px;
+        }
+
+        thead {
+            border-bottom: 1px dashed #aaa;
+        }
+
+        tfoot {
+            border-top: 1px dashed #aaa;
+        }
+
+        .total {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .print-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 1rem;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .print-btn:hover {
+            background: #218838;
+        }
+
+        @@media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #receipt, #receipt * {
+                visibility: visible;
+            }
+
+            #receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .print-btn {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container" id="receipt">
+        <h2>Sales Receipt</h2>
+        <div class="receipt-meta">
+            <p><strong>Sale ID:</strong> @Model.Sale.Id</p>
+            <p><strong>Date:</strong> @Model.Sale.Timestamp.ToString("g")</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Sale.SaleItems)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Price.ToString("C")</td>
+                        <td>@((item.Quantity * item.Price).ToString("C"))</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="total">Total:</td>
+                    <td class="total">@Model.Sale.TotalAmount.ToString("C")</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <button class="print-btn" onclick="window.print()">🖨️ Print Receipt</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/InventoryHub")
+            .build();
+
+        connection.on("InventoryUpdated", () => {
+            alert("Inventory has been updated. Please refresh the page.");
+        });
+
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+</body>
+</html>

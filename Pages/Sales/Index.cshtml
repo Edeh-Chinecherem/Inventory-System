@@ -1,0 +1,53 @@
+@page
+@using InventorySystem.Models
+@model InventorySystem.Pages.Sales.IndexModel
+@{
+    ViewData["Title"] = "Sales Index";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h2 class="text-primary">Sales Records</h2>
+        <a asp-page="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Create Sale
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle shadow-sm">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Date</th>
+                    <th>Product(s)</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody class="table-light">
+                @foreach (var sale in Model.Sales)
+                {
+                    <tr>
+                        <td class="text-center">@sale.Timestamp.ToString("MM/dd/yyyy")</td>
+                        <td>
+                            @foreach (var item in sale.SaleItems)
+                            {
+                                <div class="fw-bold text-primary">@item.Product?.ProductName</div>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var item in sale.SaleItems)
+                            {
+                                <div class="text-secondary">@item.Quantity</div>
+                            }
+                        </td>
+                        <td class="text-success fw-bold">@sale.TotalAmount.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Optional Bootstrap & Icons CDN if not already included -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
