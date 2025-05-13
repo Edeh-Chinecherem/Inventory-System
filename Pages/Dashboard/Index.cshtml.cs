@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using InventorySystem.Models;
 using InventorySystem.Data;
-using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 
 namespace InventorySystem.Pages.Dashboard
@@ -13,8 +12,8 @@ namespace InventorySystem.Pages.Dashboard
     {
         private readonly AppDbContext _context;
 
-        public ChartData SalesChart { get; set; }
-        public ChartData TopProductsChart { get; set; }
+        public ChartData? SalesChart { get; set; }
+        public ChartData? TopProductsChart { get; set; }
         public int TotalSalesCount { get; set; }
         public decimal TotalRevenue { get; set; }
         public int LowStockCount { get; set; }
@@ -29,21 +28,42 @@ namespace InventorySystem.Pages.Dashboard
 
         public void OnGet()
         {
-            DateTime startDate = Range == "weekly" ? DateTime.Today.AddDays(-7) : DateTime.Today.AddMonths(-1);
+            Console.WriteLine($"Here");
+            DateTime startDate = Range switch
+            {
+                "weekly" => DateTime.Today.AddDays(-7),
+                "daily" => DateTime.Today,
+                _ => DateTime.Today.AddMonths(-1)
+            };
 
-            // Fix: Use AsEnumerable() to calculate in-memory for SalesChart
             var sales = _context.Sales
                 .Where(s => s.Timestamp >= startDate)
-                .AsEnumerable() // Moves calculation to memory to avoid LINQ to SQL issues
+                .Include(s => s.SaleItems)
+                .AsEnumerable()
                 .GroupBy(s => s.Timestamp.Date)
                 .Select(g => new { Date = g.Key.ToString("MM/dd"), Total = g.Sum(s => s.TotalAmount) })
                 .OrderBy(s => s.Date)
                 .ToList();
 
-            // Fix: Use AsEnumerable() for SaleItems grouping
+            var s = _context.Sales.Include(s => s.SaleItems).ToList();
+            var t = s.GroupBy(k => k.Timestamp.Date);
+            Console.WriteLine($"Count: {t.Count()}");
+            // Console.WriteLine($"Keys: {t.}");
+
+            foreach (var d in sales.Select(s => s.Date))
+            {
+                Console.WriteLine(d);
+            }
+            foreach (var d in sales.Select(s => s.Total))
+            {
+                Console.WriteLine(d);
+            }
+
+
             var topProducts = _context.SaleItems
+                .Include(si => si.Sale)
                 .Where(si => si.Sale.Timestamp >= startDate)
-                .AsEnumerable() // Move to in-memory calculation
+                .AsEnumerable()
                 .GroupBy(si => si.ProductName)
                 .Select(g => new { Product = g.Key, Quantity = g.Sum(si => si.Quantity) })
                 .OrderByDescending(p => p.Quantity)
@@ -51,33 +71,45 @@ namespace InventorySystem.Pages.Dashboard
                 .ToList();
 
             TotalSalesCount = _context.Sales.Count(s => s.Timestamp >= startDate);
-            
-            // Fix: Use AsEnumerable() for total revenue calculation to avoid translation issue
+
             TotalRevenue = _context.Sales
                 .Where(s => s.Timestamp >= startDate)
-                .AsEnumerable() // Move to in-memory calculation
-                .Sum(s => s.TotalAmount);
-            
+                .AsEnumerable()
+                .Select(s => s.TotalAmount)
+                .DefaultIfEmpty(0)
+                .Sum();
+            // Console.WriteLine($"Total Revenue: {TotalRevenue}");
+            // Console.WriteLine($"Total Sales Count: {TotalSalesCount}");
+            // Console.WriteLine($"Low Stock Count: {LowStockCount}");
+            // Console.WriteLine($"Sales Chart: {string.Join(", ", sales.Select(s => s.Total))}");
+            Console.WriteLine($"Top Products Chart: {string.Join(", ", topProducts.Select(p => p.Product))}");
+
             LowStockCount = _context.Products.Count(p => p.Quantity < p.RestockThreshold);
 
-            // Set up chart data
+            // SalesChart = new ChartData
+            // {
+            //     Labels = s.Select(sd => sd.Timestamp.ToString()).ToList(),
+            //     Data = s.Select(sd => sd.TotalAmount).ToList()
+            // };
             SalesChart = new ChartData
             {
-                labels = sales.Select(s => s.Date).ToList(),
-                data = sales.Select(s => s.Total).ToList()
+                Labels = [.. sales.Select(s => s.Date)],
+                Data = [.. sales.Select(s => s.Total)]
             };
+
+            Console.WriteLine(sales.Select(s => s.Total).ToList());
 
             TopProductsChart = new ChartData
             {
-                labels = topProducts.Select(p => p.Product).ToList(),
-                data = topProducts.Select(p => (decimal)p.Quantity).ToList()
+                Labels = topProducts.Select(p => p.Product).ToList(),
+                Data = topProducts.Select(p => (decimal)p.Quantity).ToList()
             };
         }
     }
 
     public class ChartData
     {
-        public List<string> labels { get; set; }
-        public List<decimal> data { get; set; }
+        public List<string>? Labels { get; set; }
+        public List<decimal>? Data { get; set; }
     }
 }
