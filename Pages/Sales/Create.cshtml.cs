@@ -20,10 +20,10 @@ namespace InventorySystem.Pages.Sales
             _hubContext = hubContext;
         }
 
-        [BindProperty] public List<SaleItem> Items { get; set; }
+        [BindProperty] public List<SaleItem>? Items { get; set; }
 
         // This will be passed to the Razor Page
-        public List<Product> AvailableProducts { get; set; }
+        public List<Product>? AvailableProducts { get; set; }
 
         public void OnGet()
         {
@@ -40,7 +40,7 @@ namespace InventorySystem.Pages.Sales
                 Timestamp = DateTime.UtcNow
             };
 
-            foreach (var item in Items)
+            foreach (var item in  Items !)
             {
                 var product = _context.Products.FirstOrDefault(p => p.Id == item.ProductId);
                 if (product == null || product.Quantity < item.Quantity)
