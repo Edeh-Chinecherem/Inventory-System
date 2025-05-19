@@ -12,8 +12,8 @@ namespace InventorySystem.Pages.Dashboard
     {
         private readonly AppDbContext _context;
 
-        public ChartData? SalesChart { get; set; }
-        public ChartData? TopProductsChart { get; set; }
+        public ChartData SalesChart { get; set; }
+        public ChartData TopProductsChart { get; set; }
         public int TotalSalesCount { get; set; }
         public decimal TotalRevenue { get; set; }
         public int LowStockCount { get; set; }
@@ -38,27 +38,13 @@ namespace InventorySystem.Pages.Dashboard
 
             var sales = _context.Sales
                 .Where(s => s.Timestamp >= startDate)
-                .Include(s => s.SaleItems)
                 .AsEnumerable()
                 .GroupBy(s => s.Timestamp.Date)
                 .Select(g => new { Date = g.Key.ToString("MM/dd"), Total = g.Sum(s => s.TotalAmount) })
-                .OrderBy(s => s.Date)
+                // .OrderBy(s => s.Date)
                 .ToList();
 
-            var s = _context.Sales.Include(s => s.SaleItems).ToList();
-            var t = s.GroupBy(k => k.Timestamp.Date);
-            Console.WriteLine($"Count: {t.Count()}");
-            // Console.WriteLine($"Keys: {t.}");
-
-            foreach (var d in sales.Select(s => s.Date))
-            {
-                Console.WriteLine(d);
-            }
-            foreach (var d in sales.Select(s => s.Total))
-            {
-                Console.WriteLine(d);
-            }
-
+            
 
             var topProducts = _context.SaleItems
                 .Include(si => si.Sale)
@@ -78,38 +64,33 @@ namespace InventorySystem.Pages.Dashboard
                 .Select(s => s.TotalAmount)
                 .DefaultIfEmpty(0)
                 .Sum();
-            // Console.WriteLine($"Total Revenue: {TotalRevenue}");
-            // Console.WriteLine($"Total Sales Count: {TotalSalesCount}");
-            // Console.WriteLine($"Low Stock Count: {LowStockCount}");
-            // Console.WriteLine($"Sales Chart: {string.Join(", ", sales.Select(s => s.Total))}");
+                Console.WriteLine($"Total Revenue: {TotalRevenue}");
+            Console.WriteLine($"Total Sales Count: {TotalSalesCount}");
+            Console.WriteLine($"Low Stock Count: {LowStockCount}");
+            Console.WriteLine($"Sales Chart: {string.Join(", ", sales.Select(s => s.Total))}");
             Console.WriteLine($"Top Products Chart: {string.Join(", ", topProducts.Select(p => p.Product))}");
 
             LowStockCount = _context.Products.Count(p => p.Quantity < p.RestockThreshold);
 
-            // SalesChart = new ChartData
-            // {
-            //     Labels = s.Select(sd => sd.Timestamp.ToString()).ToList(),
-            //     Data = s.Select(sd => sd.TotalAmount).ToList()
-            // };
             SalesChart = new ChartData
             {
-                Labels = [.. sales.Select(s => s.Date)],
-                Data = [.. sales.Select(s => s.Total)]
+                labels = sales.Select(s => s.Timestamp).ToList(),
+                data = sales.Select(s => s.TotalAmount).ToList()
             };
-
+            
             Console.WriteLine(sales.Select(s => s.Total).ToList());
 
             TopProductsChart = new ChartData
             {
-                Labels = topProducts.Select(p => p.Product).ToList(),
-                Data = topProducts.Select(p => (decimal)p.Quantity).ToList()
+                labels = topProducts.Select(p => p.Product).ToList(),
+                data = topProducts.Select(p => (decimal)p.Quantity).ToList()
             };
         }
     }
 
     public class ChartData
     {
-        public List<string>? Labels { get; set; }
-        public List<decimal>? Data { get; set; }
+        public List<string> labels { get; set; }
+        public List<decimal> data { get; set; }
     }
 }
