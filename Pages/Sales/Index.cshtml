@@ -21,6 +21,7 @@
                     <th>Product(s)</th>
                     <th>Quantity</th>
                     <th>Total</th>
+                    <th>Actions</th> <!-- Print option -->
                 </tr>
             </thead>
             <tbody class="table-light">
@@ -41,6 +42,11 @@
                             }
                         </td>
                         <td class="text-success fw-bold">@sale.TotalAmount.ToString("C")</td>
+                        <td class="text-center">
+                            <a asp-page="/Sales/Receipt" asp-route-id="@sale.Id" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-printer"></i> Print
+                            </a>
+                        </td>
                     </tr>
                 }
             </tbody>
