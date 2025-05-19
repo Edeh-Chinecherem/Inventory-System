@@ -38,10 +38,11 @@ namespace InventorySystem.Pages.Dashboard
 
             var sales = _context.Sales
                 .Where(s => s.Timestamp >= startDate)
+                .Include(s => s.SaleItems)
                 .AsEnumerable()
                 .GroupBy(s => s.Timestamp.Date)
                 .Select(g => new { Date = g.Key.ToString("MM/dd"), Total = g.Sum(s => s.TotalAmount) })
-                // .OrderBy(s => s.Date)
+                .OrderBy(s => s.Date)
                 .ToList();
 
             var s = _context.Sales.Include(s => s.SaleItems).ToList();
@@ -80,22 +81,22 @@ namespace InventorySystem.Pages.Dashboard
             
             SalesChart = new ChartData
             {
-                labels = sales.Select(s => s.Timestamp).ToList(),
-                data = sales.Select(s => s.TotalAmount).ToList()
+                Labels = [.. sales.Select(s => s.Date)],
+                Data = [.. sales.Select(s => s.Total)]
             };
-            
+
             
             TopProductsChart = new ChartData
             {
-                labels = topProducts.Select(p => p.Product).ToList(),
-                data = topProducts.Select(p => (decimal)p.Quantity).ToList()
+                Labels = topProducts.Select(p => p.Product).ToList(),
+                Data = topProducts.Select(p => (decimal)p.Quantity).ToList()
             };
         }
     }
 
     public class ChartData
     {
-        public List<string> labels { get; set; }
-        public List<decimal> data { get; set; }
+        public List<string> Labels { get; set; }
+        public List<decimal> Data { get; set; }
     }
 }
