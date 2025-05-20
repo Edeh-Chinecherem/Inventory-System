@@ -12,8 +12,8 @@ namespace InventorySystem.Pages.Dashboard
     {
         private readonly AppDbContext _context;
 
-        public ChartData SalesChart { get; set; }
-        public ChartData TopProductsChart { get; set; }
+        public ChartData? SalesChart { get; set; }
+        public ChartData? TopProductsChart { get; set; }
         public int TotalSalesCount { get; set; }
         public decimal TotalRevenue { get; set; }
         public int LowStockCount { get; set; }
@@ -96,7 +96,7 @@ namespace InventorySystem.Pages.Dashboard
 
     public class ChartData
     {
-        public List<string> Labels { get; set; }
-        public List<decimal> Data { get; set; }
+        public List<string>? Labels { get; set; }
+        public List<decimal>? Data { get; set; }
     }
 }
