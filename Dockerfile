@@ -8,7 +8,7 @@ RUN dotnet restore
 
 # Copy the rest of the app
 COPY . ./
-RUN dotnet publish -c Release -o /out
+RUN dotnet publish InventorySystem.csproj -c Release -o /out
 
 # --- Runtime Stage ---
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
