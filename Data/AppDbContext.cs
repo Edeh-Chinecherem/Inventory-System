@@ -71,8 +71,11 @@ namespace InventorySystem.Data
         foreach (var entry in entries)
         {
             var entity = entry.Entity as Product;
-            entity.IsDeleted = true;
-            entry.State = EntityState.Modified;
+            if (entity != null)
+            {
+                entity.IsDeleted = true;
+                entry.State = EntityState.Modified;
+            }
         }
 
         return base.SaveChanges();
