@@ -2,8 +2,11 @@
 @using Microsoft.AspNetCore.SignalR;
 @using InventorySystem.Models;
 @model InventorySystem.Pages.Sales.CreateModel
+@using System.Text.Json
+
 @{
     ViewData["Title"] = "Create Sale";
+    var productsJson = JsonSerializer.Serialize(Model.AvailableProducts);
 }
 
 <h2 class="text-center text-primary my-4">Create Sale</h2>
@@ -28,36 +31,58 @@
     </div>
 </div>
 
+<!-- Serialize available products into JavaScript -->
 <script>
+    const availableProducts = @Html.Raw(productsJson);
     let counter = 0;
+    const container = document.getElementById('itemsContainer');
+
     function addItem() {
-        const container = document.getElementById('itemsContainer');
         const index = counter++;
+
+        let options = availableProducts.map(p =>
+            `<option value="${p.Id}" data-price="${p.Price}" data-name="${p.ProductName}">
+                ${p.ProductName} ($${p.Price})
+            </option>`
+        ).join("");
+
         const itemHtml = `
             <div class="border rounded p-3 mb-3 bg-white shadow-sm sale-item">
-                <div class="row g-2">
-                    <div class="col-md-3">
-                        <label class="form-label">Product ID:</label>
-                        <input name="Items[${index}].ProductId" type="number" class="form-control" required />
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Product:</label>
+                        <select name="Items[${index}].ProductId" class="form-select product-dropdown" data-index="${index}" required>
+                            <option value="">Select Product</option>
+                            ${options}
+                        </select>
+                        <input type="hidden" name="Items[${index}].ProductName" class="product-name-${index}" />
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Product Name:</label>
-                        <input name="Items[${index}].ProductName" type="text" class="form-control" required />
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Quantity:</label>
                         <input name="Items[${index}].Quantity" type="number" class="form-control" required />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Price:</label>
-                        <input name="Items[${index}].Price" type="number" step="0.01" class="form-control" required />
+                        <input name="Items[${index}].Price" type="number" step="0.01" class="form-control price-field-${index}" required readonly />
                     </div>
                 </div>
             </div>
         `;
+
         container.insertAdjacentHTML('beforeend', itemHtml);
     }
+
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('product-dropdown')) {
+            const selectedOption = e.target.selectedOptions[0];
+            const price = selectedOption.getAttribute('data-price');
+            const name = selectedOption.getAttribute('data-name');
+            const index = e.target.getAttribute('data-index');
+
+            document.querySelector(`.price-field-${index}`).value = price;
+            document.querySelector(`.product-name-${index}`).value = name;
+        }
+    });
 </script>
 
-<!-- Optional Bootstrap CDN (if not already included in your layout) -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />

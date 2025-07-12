@@ -17,7 +17,7 @@ namespace InventorySystem.Pages.Sales
             _context = context;
         }
 
-        public IList<Sale> Sales { get; set; }
+        public IList<Sale>? Sales { get; set; }
 
         public void OnGet()
         {

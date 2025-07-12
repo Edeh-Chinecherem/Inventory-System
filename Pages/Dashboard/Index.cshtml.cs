@@ -28,7 +28,7 @@ namespace InventorySystem.Pages.Dashboard
 
         public void OnGet()
         {
-            Console.WriteLine($"Here");
+            
             DateTime startDate = Range switch
             {
                 "weekly" => DateTime.Today.AddDays(-7),
@@ -47,19 +47,9 @@ namespace InventorySystem.Pages.Dashboard
 
             var s = _context.Sales.Include(s => s.SaleItems).ToList();
             var t = s.GroupBy(k => k.Timestamp.Date);
-            Console.WriteLine($"Count: {t.Count()}");
-            // Console.WriteLine($"Keys: {t.}");
-
-            foreach (var d in sales.Select(s => s.Date))
-            {
-                Console.WriteLine(d);
-            }
-            foreach (var d in sales.Select(s => s.Total))
-            {
-                Console.WriteLine(d);
-            }
-
-
+            
+            
+            
             var topProducts = _context.SaleItems
                 .Include(si => si.Sale)
                 .Where(si => si.Sale.Timestamp >= startDate)
@@ -78,27 +68,24 @@ namespace InventorySystem.Pages.Dashboard
                 .Select(s => s.TotalAmount)
                 .DefaultIfEmpty(0)
                 .Sum();
-            // Console.WriteLine($"Total Revenue: {TotalRevenue}");
-            // Console.WriteLine($"Total Sales Count: {TotalSalesCount}");
-            // Console.WriteLine($"Low Stock Count: {LowStockCount}");
-            // Console.WriteLine($"Sales Chart: {string.Join(", ", sales.Select(s => s.Total))}");
-            Console.WriteLine($"Top Products Chart: {string.Join(", ", topProducts.Select(p => p.Product))}");
+            
+            
+            LowStockCount = _context.Products
+                .Where(p => p.Quantity <= p.RestockThreshold && !p.IsDeleted)
+                .Count();
+            Console.WriteLine("Products in DB: " + _context.Products.Count());
 
-            LowStockCount = _context.Products.Count(p => p.Quantity < p.RestockThreshold);
 
-            // SalesChart = new ChartData
-            // {
-            //     Labels = s.Select(sd => sd.Timestamp.ToString()).ToList(),
-            //     Data = s.Select(sd => sd.TotalAmount).ToList()
-            // };
+            Console.WriteLine($"Low Stock Count: {LowStockCount}");
+
+            
             SalesChart = new ChartData
             {
                 Labels = [.. sales.Select(s => s.Date)],
                 Data = [.. sales.Select(s => s.Total)]
             };
 
-            Console.WriteLine(sales.Select(s => s.Total).ToList());
-
+            
             TopProductsChart = new ChartData
             {
                 Labels = topProducts.Select(p => p.Product).ToList(),
