@@ -11,11 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register Application DB Context for products, sales, etc.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("AppConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("AppConnection")));
 
 // Register Authentication DB Context for Identity
 builder.Services.AddDbContext<AuthDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("AuthConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("AuthConnection")));
 
 // Add Identity services with AuthDbContext
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
